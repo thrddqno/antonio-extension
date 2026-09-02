@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --background: #121212;
+  --foreground: #a4a4a4;
+  --foreground-strong: #dbd9d3;
+  --muted: #8a8575;
+  --subtle: #605d5b;
+  --border: #383735;
+  --border-hover: #605d5b;
+  --accent: #605d5b;
+  --cursor: #a4a4a4;
+  --accent-warm: #e19e74;
+  --selection-background: #a4a4a4;
+  --selection-foreground: #121212;
+  --danger: #984b1e;
+  --surface: rgba(18, 18, 18, 0.82);
+  --surface-low: rgba(56, 55, 53, 0.18);
+  --surface-hover: rgba(56, 55, 53, 0.28);
+  --color-0: #121212;
+  --color-1: #e19e74;
+  --color-2: #a5a297;
+  --color-3: #c6c4b0;
+  --color-4: #605d5b;
+  --color-5: #8a8575;
+  --color-6: #C2BBB0;
+  --color-7: #dbd9d3;
+  --color-8: #383735;
+  --color-9: #984b1e;
+  --color-10: #637380;
+  --color-11: #8f4445;
+  --color-12: #b7a798;
+  --color-13: #b3adad;
+  --color-14: #90947a;
+  --color-15: #a4a4a4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-family);
+}
+
+::selection {
+  background: var(--selection-background);
+  color: var(--selection-foreground);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 1px solid var(--cursor);
+  outline-offset: 3px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.clock-separator {
+  animation: blink 1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+
+  .clock-separator {
+    animation: none !important;
+  }
+}

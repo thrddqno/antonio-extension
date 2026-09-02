@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="New Tab icon">
+  <rect width="128" height="128" fill="#121212"/>
+  <rect x="12" y="12" width="104" height="104" fill="none" stroke="#605d5b" stroke-width="4"/>
+  <path d="M35 39 L59 63 L35 87" fill="none" stroke="#a4a4a4" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M69 86 H97" stroke="#a4a4a4" stroke-width="10" stroke-linecap="square"/>
+</svg>
