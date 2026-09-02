@@ -23,7 +23,7 @@ export function SearchBox({ engine }: { engine: SearchEngine }) {
   }
 
   return (
-    <form className="relative mx-auto mb-[clamp(5rem,11vh,8rem)] max-w-md" onSubmit={handleSubmit} role="search">
+    <form className="relative mx-auto mb-[clamp(5rem,11vh,8rem)] flex max-w-md items-center" onSubmit={handleSubmit} role="search">
       <label className="sr-only" htmlFor="search-input">Search the web</label>
       <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--foreground)] opacity-35" aria-hidden="true">&gt;</span>
       <input
@@ -36,7 +36,7 @@ export function SearchBox({ engine }: { engine: SearchEngine }) {
             event.currentTarget.blur();
           }
         }}
-        className="w-full rounded-[4px] border border-[var(--border)] bg-[var(--surface-low)] py-2.5 pl-8 pr-3 text-sm text-[var(--foreground-strong)] caret-[var(--cursor,var(--foreground))] transition-colors duration-150 placeholder:text-[var(--foreground)] placeholder:opacity-[0.35] hover:border-[var(--border-hover)] focus:border-[var(--foreground)]"
+        className="w-full rounded-[4px] border border-[var(--border)] bg-[var(--surface-low)] py-2.5 pl-8 pr-8 text-center text-sm text-[var(--foreground-strong)] caret-[var(--cursor,var(--foreground))] transition-colors duration-150 placeholder:text-[var(--foreground)] placeholder:opacity-[0.35] hover:border-[var(--border-hover)] focus:border-[var(--foreground)]"
         placeholder="search the web..."
         autoComplete="off"
         spellCheck={false}
