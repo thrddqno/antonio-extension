@@ -385,7 +385,7 @@ export function PinSections({ groups, pins, isEditing, onAddPin, onEditGroup, on
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
         <SortableContext items={categorizedGroups.map((group) => group.id)} strategy={verticalListSortingStrategy}>
-          <div className="mt-14 space-y-14">
+          <div className="mt-3 space-y-3">
             {categorizedGroups.length === 0 ? <p className="text-xs text-[var(--foreground)] opacity-25">no groups yet</p> : null}
             {categorizedGroups.map((group) => (
               <SortableGroup
