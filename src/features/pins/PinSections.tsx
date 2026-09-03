@@ -82,7 +82,7 @@ function PinList({ categoryId, pins, isEditing, activePinMenuId, onToggleMenu, o
   return (
     <DndContext sensors={sensors} collisionDetection={pinCollisionDetection} onDragEnd={handleDragEnd}>
       <SortableContext items={sortedPins.map((pin) => pin.id)} strategy={rectSortingStrategy}>
-        <div className="flex flex-wrap justify-center gap-2" data-pin-category={categoryId}>
+        <div className="flex flex-wrap justify-center gap-3" data-pin-category={categoryId}>
           {sortedPins.map((pin) => (
             <SortablePin
               key={pin.id}
