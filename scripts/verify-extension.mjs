@@ -1,7 +1,8 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { chromium } from 'playwright-core';
 
 const distDir = resolve('dist');
 const manifestPath = join(distDir, 'manifest.json');
@@ -38,25 +39,27 @@ if (!chromiumPath) {
 }
 
 const profileDir = mkdtempSync(join(tmpdir(), 'new-tab-extension-'));
+let context;
 
 try {
-  const output = execFileSync(
-    chromiumPath,
-    [
+  context = await chromium.launchPersistentContext(profileDir, {
+    executablePath: chromiumPath,
+    headless: true,
+    args: [
       '--headless=new',
       '--disable-gpu',
       '--no-sandbox',
-      `--user-data-dir=${profileDir}`,
       `--disable-extensions-except=${distDir}`,
       `--load-extension=${distDir}`,
-      '--dump-dom',
-      'chrome://newtab/',
     ],
-    { encoding: 'utf8', timeout: 30_000 },
-  );
+  });
 
-  assert(output.includes('New Tab'), 'Chromium did not render the extension new-tab page.');
+  const page = context.pages()[0] ?? (await context.newPage());
+  await page.goto('chrome://newtab/');
+  await page.waitForLoadState('domcontentloaded');
+  assert((await page.title()) === 'New Tab', 'Chromium did not render the extension new-tab page.');
 } finally {
+  await context?.close();
   rmSync(profileDir, { recursive: true, force: true });
 }
 
