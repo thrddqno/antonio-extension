@@ -12,9 +12,14 @@ describe('parseColorsToml', () => {
     expect(result).toEqual({ theme: DEFAULT_THEME, error: null });
   });
 
-  it('rejects missing required keys without returning a partial theme', () => {
+  it('fills optional terminal colors from semantic theme values', () => {
     const input = validToml().replace(/color15.*\n/, '');
-    expect(parseColorsToml(input)).toEqual({ theme: null, error: 'missing required key: color15' });
+    expect(parseColorsToml(input).theme?.color15).toBe(DEFAULT_THEME.foreground);
+  });
+
+  it('rejects themes without the required semantic colors', () => {
+    const input = validToml().replace(/accent.*\n/, '');
+    expect(parseColorsToml(input)).toEqual({ theme: null, error: 'missing required colors: background, foreground, accent' });
   });
 
   it('rejects duplicate keys', () => {
