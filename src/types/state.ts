@@ -12,10 +12,7 @@ export interface Pin {
   order: number;
 }
 
-export type SearchEngine = 'google' | 'duckduckgo' | 'brave';
-
 export interface Preferences {
-  searchEngine: SearchEngine;
   lockLayoutByDefault: boolean;
   font: FontOption;
   customFont: string;

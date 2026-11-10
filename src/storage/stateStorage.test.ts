@@ -33,7 +33,6 @@ describe('normalizeState', () => {
       groups: [{ id: 'work', name: 'work', order: 1 }],
       pins: [],
       preferences: {
-        searchEngine: 'google',
         lockLayoutByDefault: false,
         weatherLocation: 'legacy',
         weatherUnits: 'fahrenheit',
@@ -42,7 +41,6 @@ describe('normalizeState', () => {
     });
 
     expect(state.preferences).toEqual({
-      searchEngine: 'google',
       lockLayoutByDefault: false,
       font: 'system',
       customFont: '',
@@ -56,7 +54,6 @@ describe('normalizeState', () => {
       groups: [],
       pins: [],
       preferences: {
-        searchEngine: 'duckduckgo',
         lockLayoutByDefault: true,
         font: 'custom',
         customFont: 'Iosevka',
@@ -65,7 +62,7 @@ describe('normalizeState', () => {
       knownDomainCategories: {},
     });
 
-    expect(state.preferences).toMatchObject({ searchEngine: 'duckduckgo', font: 'custom', customFont: 'Iosevka' });
+    expect(state.preferences).toMatchObject({ font: 'custom', customFont: 'Iosevka' });
   });
 
   it('deduplicates persisted pin IDs to keep drag identity stable', () => {

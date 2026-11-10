@@ -1,7 +1,6 @@
 import { type FormEvent, type ReactNode, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from 'react';
 import { ClockHeader } from '../features/clock/ClockHeader';
 import { PinSections } from '../features/pins/PinSections';
-import { SearchBox } from '../features/search/SearchBox';
 import { SettingsDrawer } from '../features/settings/SettingsDrawer';
 import { createDefaultState } from '../storage/defaultState';
 import { loadState, saveState } from '../storage/stateStorage';
@@ -306,10 +305,9 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] px-4 text-[var(--foreground)] sm:px-6 lg:px-10">
-      <main className="mx-auto max-w-4xl" inert={isAnyModalOpen || undefined}>
+    <div className="min-h-screen min-h-dvh bg-[var(--background)] px-[var(--page-gutter)] text-[var(--foreground)]">
+      <main className="mx-auto max-w-[var(--content-max)]" inert={isAnyModalOpen || undefined}>
         <ClockHeader />
-        <SearchBox engine={state.preferences.searchEngine} />
         <PinSections
           groups={state.groups}
           pins={state.pins}
@@ -378,9 +376,9 @@ export function App() {
                 </select>
               </div>
             ) : null}
-            <div className="flex justify-end gap-4 pt-2">
-              <button className="text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={closeDialog}>cancel</button>
-              <button className="text-[var(--accent-warm)] hover:text-[var(--foreground-strong)]" type="submit" data-autofocus={!state.pins.some((pin) => pin.categoryId === groupToDelete.id) || undefined}>delete group</button>
+            <div className="flex justify-end gap-2 pt-1">
+              <button className="control-target px-2 text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={closeDialog}>cancel</button>
+              <button className="control-target px-2 text-[var(--accent-warm)] hover:text-[var(--foreground-strong)]" type="submit" data-autofocus={!state.pins.some((pin) => pin.categoryId === groupToDelete.id) || undefined}>delete group</button>
             </div>
           </form>
         </Dialog>
@@ -431,15 +429,15 @@ function BottomDock({ isAddMenuOpen, onToggleAddMenu, onNewPin, onNewGroup, isEd
   }, [isAddMenuOpen]);
 
   return (
-    <nav className="fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-[4px] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--foreground)] opacity-50 backdrop-blur-md transition-opacity duration-150 hover:opacity-90 focus-within:opacity-90" aria-label="New tab controls">
+    <nav className="fixed bottom-[var(--dock-offset)] left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-[4px] border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--foreground)] opacity-50 backdrop-blur-md transition-opacity duration-150 hover:opacity-90 focus-within:opacity-90" aria-label="New tab controls">
       {isEditing ? (
         <>
           <div ref={addControlRef} className="relative">
-            <button ref={addButtonRef} className="px-1.5 text-sm leading-none text-[var(--foreground-strong)]" type="button" aria-expanded={isAddMenuOpen} aria-haspopup="menu" onClick={onToggleAddMenu}>+</button>
+            <button ref={addButtonRef} className="control-target min-w-9 px-2 text-sm leading-none text-[var(--foreground-strong)]" type="button" aria-expanded={isAddMenuOpen} aria-haspopup="menu" onClick={onToggleAddMenu}>+</button>
             {isAddMenuOpen ? (
-              <div className="absolute bottom-9 left-0 min-w-28 rounded-[4px] border border-[var(--border)] bg-[var(--background)] p-1.5 text-xs" role="menu">
-                <button ref={firstAddItemRef} className="block w-full px-2.5 py-1.5 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]" type="button" role="menuitem" onClick={onNewPin}>new pin</button>
-                <button className="block w-full px-2.5 py-1.5 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]" type="button" role="menuitem" onClick={onNewGroup}>new group</button>
+              <div className="absolute bottom-full left-0 mb-2 min-w-28 rounded-[4px] border border-[var(--border)] bg-[var(--background)] p-1.5 text-xs" role="menu">
+                <button ref={firstAddItemRef} className="control-target block w-full px-2.5 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]" type="button" role="menuitem" onClick={onNewPin}>new pin</button>
+                <button className="control-target block w-full px-2.5 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]" type="button" role="menuitem" onClick={onNewGroup}>new group</button>
               </div>
             ) : null}
           </div>
@@ -447,7 +445,7 @@ function BottomDock({ isAddMenuOpen, onToggleAddMenu, onNewPin, onNewGroup, isEd
         </>
       ) : null}
       <button
-        className={`transition-colors duration-150 hover:text-[var(--foreground-strong)] ${isEditing ? 'text-[var(--foreground-strong)]' : 'text-[var(--foreground)]'}`}
+        className={`control-target px-2 transition-colors duration-150 hover:text-[var(--foreground-strong)] ${isEditing ? 'text-[var(--foreground-strong)]' : 'text-[var(--foreground)]'}`}
         type="button"
         aria-pressed={isEditing}
         aria-label={isEditing ? 'Lock layout' : 'Edit layout'}
@@ -456,7 +454,7 @@ function BottomDock({ isAddMenuOpen, onToggleAddMenu, onNewPin, onNewGroup, isEd
         {isEditing ? 'editing' : 'locked'}
       </button>
       <span className="h-4 w-px bg-[var(--border)]" />
-      <button className="text-[var(--foreground)] transition-colors duration-150 hover:text-[var(--foreground-strong)]" type="button" onClick={onSettings}>settings</button>
+      <button className="control-target px-2 text-[var(--foreground)] transition-colors duration-150 hover:text-[var(--foreground-strong)]" type="button" onClick={onSettings}>settings</button>
     </nav>
   );
 }
@@ -489,23 +487,29 @@ function PinDialog({ form, groups, knownDomainCategories, error, initialField, r
 
   return (
     <Dialog title={form.id ? 'Edit Pin' : 'Add Pin'} returnFocus={returnFocus} onClose={onClose}>
-      <form className="space-y-5" onSubmit={onSubmit}>
-        <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="pin-label">label</label>
-        <input id="pin-label" data-autofocus={initialField === 'label' || undefined} maxLength={80} className="w-full border border-[var(--border)] bg-transparent px-3 py-2 text-[var(--foreground)]" value={form.label} onChange={(event) => onChange({ ...form, label: event.target.value })} />
+      <form className="space-y-6" onSubmit={onSubmit}>
+        <div className="space-y-2">
+          <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="pin-label">label</label>
+          <input id="pin-label" data-autofocus={initialField === 'label' || undefined} maxLength={80} className="w-full border border-[var(--border)] bg-transparent px-3 py-2 text-[var(--foreground)]" value={form.label} onChange={(event) => onChange({ ...form, label: event.target.value })} />
+        </div>
 
-        <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="pin-url">url</label>
-        <input id="pin-url" maxLength={2048} className="w-full border border-[var(--border)] bg-transparent px-3 py-2 text-[var(--foreground)]" value={form.url} onChange={(event) => handleUrlChange(event.target.value)} />
+        <div className="space-y-2">
+          <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="pin-url">url</label>
+          <input id="pin-url" maxLength={2048} className="w-full border border-[var(--border)] bg-transparent px-3 py-2 text-[var(--foreground)]" value={form.url} onChange={(event) => handleUrlChange(event.target.value)} />
+        </div>
 
-        <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="pin-category">group</label>
-        <select id="pin-category" data-autofocus={initialField === 'category' || undefined} className="w-full border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)]" value={form.categoryId} onChange={(event) => onChange({ ...form, categoryId: event.target.value })}>
-          {groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-        </select>
+        <div className="space-y-2">
+          <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="pin-category">group</label>
+          <select id="pin-category" data-autofocus={initialField === 'category' || undefined} className="w-full border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)]" value={form.categoryId} onChange={(event) => onChange({ ...form, categoryId: event.target.value })}>
+            {groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+          </select>
+        </div>
 
         {error ? <p className="text-sm text-[var(--accent-warm)]" role="alert">{error}</p> : null}
 
-        <div className="flex justify-end gap-4 pt-2">
-          <button className="text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>cancel</button>
-          <button className="text-[var(--foreground-strong)] hover:text-[var(--accent-warm)]" type="submit">save</button>
+        <div className="flex justify-end gap-2 pt-1">
+          <button className="control-target px-2 text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>cancel</button>
+          <button className="control-target px-2 text-[var(--foreground-strong)] hover:text-[var(--accent-warm)]" type="submit">save</button>
         </div>
       </form>
     </Dialog>
@@ -524,15 +528,17 @@ interface GroupDialogProps {
 function GroupDialog({ form, error, returnFocus, onChange, onClose, onSubmit }: GroupDialogProps) {
   return (
     <Dialog title={form.id ? 'Edit Group' : 'Add Group'} returnFocus={returnFocus} onClose={onClose}>
-      <form className="space-y-5" onSubmit={onSubmit}>
-        <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="group-name">name</label>
-        <input id="group-name" data-autofocus maxLength={60} className="w-full border border-[var(--border)] bg-transparent px-3 py-2 text-[var(--foreground)]" value={form.name} onChange={(event) => onChange({ ...form, name: event.target.value })} />
+      <form className="space-y-6" onSubmit={onSubmit}>
+        <div className="space-y-2">
+          <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="group-name">name</label>
+          <input id="group-name" data-autofocus maxLength={60} className="w-full border border-[var(--border)] bg-transparent px-3 py-2 text-[var(--foreground)]" value={form.name} onChange={(event) => onChange({ ...form, name: event.target.value })} />
+        </div>
 
         {error ? <p className="text-sm text-[var(--accent-warm)]" role="alert">{error}</p> : null}
 
-        <div className="flex justify-end gap-4 pt-2">
-          <button className="text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>cancel</button>
-          <button className="text-[var(--foreground-strong)] hover:text-[var(--accent-warm)]" type="submit">save</button>
+        <div className="flex justify-end gap-2 pt-1">
+          <button className="control-target px-2 text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>cancel</button>
+          <button className="control-target px-2 text-[var(--foreground-strong)] hover:text-[var(--accent-warm)]" type="submit">save</button>
         </div>
       </form>
     </Dialog>
@@ -588,11 +594,11 @@ function Dialog({ title, children, onClose, returnFocus }: DialogProps) {
   }, [returnFocus]);
 
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-[var(--background)]/75 px-4" role="presentation">
-      <section ref={dialogRef} className="w-full max-w-lg border border-[var(--border)] bg-[var(--background)] p-6" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-        <div className="mb-8 flex items-center justify-between gap-4 border-b border-[var(--border)] pb-3">
+    <div className="fixed inset-0 z-40 grid place-items-center bg-[var(--background)]/75 p-4" role="presentation">
+      <section ref={dialogRef} className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto border border-[var(--border)] bg-[var(--background)] p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+        <div className="mb-6 flex items-center justify-between gap-4 border-b border-[var(--border)] pb-3 sm:mb-8">
           <h2 id="dialog-title" className="text-xs uppercase tracking-[0.32em] text-[var(--foreground-strong)]">{title}</h2>
-          <button className="text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>close</button>
+          <button className="control-target px-2 text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>close</button>
         </div>
         {children}
       </section>
@@ -605,9 +611,9 @@ function ConfirmDialog({ title, children, onClose, onConfirm, returnFocus }: Dia
     <Dialog title={title} returnFocus={returnFocus} onClose={onClose}>
       <div className="space-y-6">
         <p className="text-sm text-[var(--foreground)]">{children}</p>
-        <div className="flex justify-end gap-4">
-          <button className="text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>cancel</button>
-          <button data-autofocus className="text-[var(--accent-warm)] hover:text-[var(--foreground-strong)]" type="button" onClick={onConfirm}>delete pin</button>
+        <div className="flex justify-end gap-2">
+          <button className="control-target px-2 text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>cancel</button>
+          <button data-autofocus className="control-target px-2 text-[var(--accent-warm)] hover:text-[var(--foreground-strong)]" type="button" onClick={onConfirm}>delete pin</button>
         </div>
       </div>
     </Dialog>

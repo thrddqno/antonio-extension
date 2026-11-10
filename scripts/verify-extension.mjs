@@ -55,7 +55,7 @@ try {
     { encoding: 'utf8', timeout: 30_000 },
   );
 
-  assert(output.includes('New Tab') || output.includes('search the web'), 'Chromium did not render the extension new-tab page.');
+  assert(output.includes('New Tab'), 'Chromium did not render the extension new-tab page.');
 } finally {
   rmSync(profileDir, { recursive: true, force: true });
 }

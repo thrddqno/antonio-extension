@@ -82,7 +82,7 @@ function PinList({ categoryId, pins, isEditing, activePinMenuId, onToggleMenu, o
   return (
     <DndContext sensors={sensors} collisionDetection={pinCollisionDetection} onDragEnd={handleDragEnd}>
       <SortableContext items={sortedPins.map((pin) => pin.id)} strategy={rectSortingStrategy}>
-        <div className="flex flex-wrap justify-center gap-3" data-pin-category={categoryId}>
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3" data-pin-category={categoryId}>
           {sortedPins.map((pin) => (
             <SortablePin
               key={pin.id}
@@ -160,7 +160,7 @@ function SortablePin({ pin, isEditing, isMenuOpen, onToggleMenu, onEditPin, onMo
       {isEditing ? (
         <button
           ref={actionButtonRef}
-          className="absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-full border border-[var(--border)] bg-[var(--background)] text-[8px] leading-none tracking-[-0.14em] text-[var(--foreground)] opacity-0 transition-opacity duration-150 hover:border-[var(--border-hover)] hover:opacity-100 focus-visible:opacity-100 group-hover/pin:opacity-70"
+          className="pin-action-target absolute -right-3 -top-3 grid place-items-center text-[8px] leading-none tracking-[-0.14em] text-[var(--foreground)] opacity-0 transition-opacity duration-150 hover:opacity-100 focus-visible:opacity-100 group-hover/pin:opacity-70"
           type="button"
           aria-label={`Actions for ${pin.label}`}
           aria-expanded={isMenuOpen}
@@ -171,14 +171,14 @@ function SortablePin({ pin, isEditing, isMenuOpen, onToggleMenu, onEditPin, onMo
             onToggleMenu(pin.id);
           }}
         >
-          ...
+          <span className="grid size-4 place-items-center rounded-full border border-[var(--border)] bg-[var(--background)] group-hover/pin:border-[var(--border-hover)]">...</span>
         </button>
       ) : null}
 
       {isEditing && isMenuOpen ? (
         <div
           ref={menuRef}
-          className="absolute right-0 top-5 z-30 min-w-20 rounded-[4px] border border-[var(--border)] bg-[var(--background)] p-1 text-[10px]"
+          className="absolute right-0 top-7 z-30 min-w-24 rounded-[4px] border border-[var(--border)] bg-[var(--background)] p-1 text-[10px]"
           role="menu"
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
@@ -191,7 +191,7 @@ function SortablePin({ pin, isEditing, isMenuOpen, onToggleMenu, onEditPin, onMo
           }}
         >
           <button
-            className="block w-full px-2 py-1.5 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]"
+            className="control-target block w-full px-2 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]"
             type="button"
             role="menuitem"
             aria-label={`Edit ${pin.label}`}
@@ -204,7 +204,7 @@ function SortablePin({ pin, isEditing, isMenuOpen, onToggleMenu, onEditPin, onMo
             edit
           </button>
           <button
-            className="block w-full px-2 py-1.5 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]"
+            className="control-target block w-full px-2 text-left text-[var(--foreground)] hover:text-[var(--foreground-strong)]"
             type="button"
             role="menuitem"
             aria-label={`Move ${pin.label}`}
@@ -217,7 +217,7 @@ function SortablePin({ pin, isEditing, isMenuOpen, onToggleMenu, onEditPin, onMo
             move
           </button>
           <button
-            className="block w-full px-2 py-1.5 text-left text-[var(--foreground)] hover:text-[var(--accent-warm)]"
+            className="control-target block w-full px-2 text-left text-[var(--foreground)] hover:text-[var(--accent-warm)]"
             type="button"
             role="menuitem"
             aria-label={`Delete ${pin.label}`}
@@ -265,19 +265,19 @@ function SortableGroup({ group, pins, isEditing, activePinMenuId, onToggleMenu, 
 
   return (
     <section ref={setNodeRef} style={style} aria-labelledby={`group-${group.id}`} className={`group/category relative ${isDragging ? 'opacity-55' : ''}`} data-group-id={group.id}>
-      <div className="mb-4 flex items-center gap-3">
+      <div className={`relative mb-4 flex items-center gap-3 ${isEditing ? 'pr-[12rem]' : ''}`}>
         <h3 id={`group-${group.id}`} className={`min-w-0 max-w-48 truncate text-[10px] uppercase tracking-[0.26em] text-[var(--foreground)] ${isEditing ? 'opacity-70' : 'opacity-55'}`} title={group.name}>
           {group.name}
         </h3>
         <span className="h-px flex-1 bg-[var(--border)] opacity-30" />
         {isEditing ? (
-          <>
-            <button className="shrink-0 text-[10px] text-[var(--foreground)] opacity-40 transition-opacity duration-150 hover:opacity-90 focus-visible:opacity-90" type="button" aria-label={`Add pin to ${group.name}`} onClick={() => onAddPin(group.id)}>
+          <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1" data-group-controls>
+            <button className="control-target shrink-0 px-2 text-[10px] text-[var(--foreground)] opacity-40 transition-opacity duration-150 hover:opacity-90 focus-visible:opacity-90" type="button" aria-label={`Add pin to ${group.name}`} onClick={() => onAddPin(group.id)}>
               add +
             </button>
             <button
               ref={setActivatorNodeRef}
-              className="cursor-grab px-1 text-[10px] tracking-[-0.2em] text-[var(--foreground)] opacity-35 hover:opacity-80 focus-visible:opacity-80 active:cursor-grabbing"
+              className="control-target min-w-9 cursor-grab px-2 text-[10px] tracking-[-0.2em] text-[var(--foreground)] opacity-35 hover:opacity-80 focus-visible:opacity-80 active:cursor-grabbing"
               type="button"
               aria-label={`Drag ${group.name} group`}
               {...attributes}
@@ -285,13 +285,13 @@ function SortableGroup({ group, pins, isEditing, activePinMenuId, onToggleMenu, 
             >
               ::
             </button>
-            <button className="shrink-0 text-[10px] text-[var(--foreground)] opacity-25 transition-opacity duration-150 hover:opacity-80 focus-visible:opacity-80 group-hover/category:opacity-50" type="button" aria-label={`Edit ${group.name} group`} onClick={() => onEditGroup(group)}>
+            <button className="control-target shrink-0 px-2 text-[10px] text-[var(--foreground)] opacity-25 transition-opacity duration-150 hover:opacity-80 focus-visible:opacity-80 group-hover/category:opacity-50" type="button" aria-label={`Edit ${group.name} group`} onClick={() => onEditGroup(group)}>
               edit
             </button>
-            <button className="shrink-0 text-[10px] text-[var(--foreground)] opacity-20 transition-opacity duration-150 hover:text-[var(--accent-warm)] hover:opacity-80 focus-visible:opacity-80 group-hover/category:opacity-45" type="button" aria-label={`Delete ${group.name} group`} onClick={() => onDeleteGroup(group)}>
+            <button className="control-target shrink-0 px-2 text-[10px] text-[var(--foreground)] opacity-20 transition-opacity duration-150 hover:text-[var(--accent-warm)] hover:opacity-80 focus-visible:opacity-80 group-hover/category:opacity-45" type="button" aria-label={`Delete ${group.name} group`} onClick={() => onDeleteGroup(group)}>
               delete
             </button>
-          </>
+          </div>
         ) : null}
       </div>
 
@@ -357,12 +357,12 @@ export function PinSections({ groups, pins, isEditing, onAddPin, onEditGroup, on
   }
 
   return (
-    <section aria-labelledby="pins-heading" className="pb-32">
-      <div className="mb-6 flex items-center gap-3">
+    <section aria-labelledby="pins-heading" className="pb-[var(--dock-clearance)]">
+      <div className={`relative mb-6 flex items-center gap-3 ${isEditing ? 'pr-14' : ''}`}>
         <h2 id="pins-heading" className="text-[10px] uppercase tracking-[0.3em] text-[var(--foreground)] opacity-50">Pins</h2>
         <span className="h-px flex-1 bg-[var(--border)] opacity-40" />
         {isEditing ? (
-          <button className="text-[10px] text-[var(--foreground)] opacity-40 transition-opacity duration-150 hover:opacity-90 focus-visible:opacity-90" type="button" onClick={() => onAddPin(UNCATEGORIZED_GROUP_ID)}>
+          <button className="control-target absolute right-0 top-1/2 -translate-y-1/2 px-2 text-[10px] text-[var(--foreground)] opacity-40 transition-opacity duration-150 hover:opacity-90 focus-visible:opacity-90" type="button" onClick={() => onAddPin(UNCATEGORIZED_GROUP_ID)}>
             add +
           </button>
         ) : null}
@@ -385,7 +385,7 @@ export function PinSections({ groups, pins, isEditing, onAddPin, onEditGroup, on
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
         <SortableContext items={categorizedGroups.map((group) => group.id)} strategy={verticalListSortingStrategy}>
-          <div className="mt-3 space-y-3">
+          <div className="mt-6 space-y-8">
             {categorizedGroups.length === 0 ? <p className="text-xs text-[var(--foreground)] opacity-25">no groups yet</p> : null}
             {categorizedGroups.map((group) => (
               <SortableGroup

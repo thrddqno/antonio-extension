@@ -28,12 +28,11 @@ export function ClockHeader() {
   }, []);
 
   return (
-    <header className="mx-auto mb-7 max-w-xl pt-[clamp(5rem,14vh,10rem)] text-center">
+    <header className="mx-auto mb-8 max-w-xl pt-[clamp(3.5rem,10dvh,6rem)] text-center sm:pt-[clamp(5rem,14vh,10rem)]">
       <time className="block text-[clamp(3.75rem,7vw,5.75rem)] font-light leading-none tracking-[-0.055em] text-[var(--foreground-strong)]" dateTime={now.toISOString()}>
         {time.hour}<span className="clock-separator">:</span>{time.minute}<span className="ml-3 align-top text-[0.22em] tracking-normal text-[var(--foreground)] opacity-65">{time.period}</span>
       </time>
       <div className="mt-4 text-[10px] uppercase tracking-[0.3em] text-[var(--foreground)] opacity-45 sm:text-[11px]">{formatDate(now)}</div>
-      <p className="mt-9 text-sm tracking-wide text-[var(--foreground)] opacity-85 sm:text-base">what's on your mind?</p>
     </header>
   );
 }

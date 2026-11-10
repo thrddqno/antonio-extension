@@ -59,16 +59,28 @@ async function pinLabels(collection) {
   );
 }
 
-async function verifySearchEngine(context, expectedPrefix) {
-  const searchPage = await context.newPage();
-  await searchPage.goto('chrome://newtab/');
-  await searchPage.getByPlaceholder('search the web...').waitFor();
-  await searchPage.route(`${expectedPrefix}**`, (route) => route.abort());
-  const request = searchPage.waitForRequest((candidate) => candidate.isNavigationRequest() && candidate.url().startsWith(expectedPrefix));
-  await searchPage.getByPlaceholder('search the web...').fill('prompt four');
-  await searchPage.getByPlaceholder('search the web...').press('Enter');
-  await request;
-  await searchPage.close();
+async function layoutPositions(page) {
+  return page.evaluate(() => ({
+    pinsHeadingTop: document.querySelector('#pins-heading')?.getBoundingClientRect().top ?? null,
+    uncategorizedTop: document.querySelector('[data-pin-category="uncategorized"]')?.getBoundingClientRect().top ?? null,
+    groups: [...document.querySelectorAll('[data-group-id]')].map((group) => ({
+      id: group.getAttribute('data-group-id'),
+      top: group.getBoundingClientRect().top,
+      pinsTop: group.querySelector('[data-pin-category]')?.getBoundingClientRect().top ?? null,
+    })),
+  }));
+}
+
+function assertSameLayout(before, after) {
+  assert(before.pinsHeadingTop !== null && after.pinsHeadingTop !== null && Math.abs(before.pinsHeadingTop - after.pinsHeadingTop) <= 1, 'Pins heading shifted when layout mode changed.');
+  assert(before.uncategorizedTop !== null && after.uncategorizedTop !== null && Math.abs(before.uncategorizedTop - after.uncategorizedTop) <= 1, 'Uncategorized pins shifted when layout mode changed.');
+  assert(before.groups.length === after.groups.length, 'Group count changed while checking layout spacing.');
+
+  for (const beforeGroup of before.groups) {
+    const afterGroup = after.groups.find((group) => group.id === beforeGroup.id);
+    assert(afterGroup && Math.abs(beforeGroup.top - afterGroup.top) <= 1, `Group ${beforeGroup.id} shifted when layout mode changed.`);
+    assert(beforeGroup.pinsTop !== null && afterGroup?.pinsTop !== null && Math.abs(beforeGroup.pinsTop - afterGroup.pinsTop) <= 1, `Pins in ${beforeGroup.id} shifted when layout mode changed.`);
+  }
 }
 
 const profileDir = mkdtempSync(join(tmpdir(), 'new-tab-ui-'));
@@ -104,21 +116,9 @@ try {
 
   await page.goto('chrome://newtab/');
   await page.waitForLoadState('domcontentloaded');
-  await page.getByPlaceholder('search the web...').waitFor();
-
-  const initiallyFocusedId = await page.evaluate(() => document.activeElement?.id);
-  assert(initiallyFocusedId === 'search-input', 'Search input was not focused when the new tab opened.');
-
-  await page.keyboard.press('/');
-  const focusedId = await page.evaluate(() => document.activeElement?.id);
-  assert(focusedId === 'search-input', 'Slash shortcut did not focus search input.');
-  assert((await page.getByPlaceholder('search the web...').inputValue()) === '/', 'Slash was hijacked while already typing in search.');
-
-  await page.keyboard.press('Escape');
-  await page.keyboard.press('Control+K');
-  const commandFocusedId = await page.evaluate(() => document.activeElement?.id);
-  assert(commandFocusedId === 'search-input', 'Control+K shortcut did not focus search input.');
-  await page.getByPlaceholder('search the web...').fill('');
+  await page.getByRole('button', { name: 'settings' }).waitFor();
+  assert((await page.getByRole('search').count()) === 0, 'Search UI is still visible.');
+  assert((await page.getByText("what's on your mind?").count()) === 0, 'Prompt text is still visible.');
 
   assert((await page.getByRole('button', { name: 'add +' }).count()) === 0, 'Add controls are visible while locked.');
   assert((await page.getByRole('button', { name: '+', exact: true }).count()) === 0, 'Dock add control is visible while locked.');
@@ -167,8 +167,6 @@ try {
   await page.getByRole('menuitem', { name: 'Edit temporary' }).click();
   await page.getByRole('heading', { name: 'Edit Pin' }).waitFor();
   assert(await page.evaluate(() => document.activeElement?.id === 'pin-label'), 'Edit pin dialog did not focus the label.');
-  await page.keyboard.press('Control+K');
-  assert(await page.evaluate(() => document.activeElement?.id === 'pin-label'), 'Search shortcut escaped an active dialog.');
   await page.getByRole('button', { name: 'save' }).focus();
   await page.keyboard.press('Tab');
   assert(await page.evaluate(() => document.activeElement?.textContent?.trim() === 'close'), 'Dialog focus was not trapped on Tab.');
@@ -225,6 +223,42 @@ try {
   const longPin = page.locator('[data-pin-category="work"] [data-pin-id]').filter({ hasText: 'x'.repeat(40) }).first();
   const longPinGeometry = await longPin.evaluate((element) => ({ width: element.getBoundingClientRect().width, pageWidth: document.documentElement.scrollWidth, viewportWidth: window.innerWidth }));
   assert(longPinGeometry.width <= 240 && longPinGeometry.pageWidth <= longPinGeometry.viewportWidth, 'Long pin label broke the wrapping layout.');
+  await page.setViewportSize({ width: 320, height: 568 });
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Edit mode overflows a 320px viewport.');
+  const editControlGeometry = await page.evaluate(() => [...document.querySelectorAll('[data-group-controls]')].map((controls) => {
+    const bounds = controls.getBoundingClientRect();
+    const heading = controls.parentElement?.querySelector('h3')?.getBoundingClientRect();
+    const buttons = [...controls.querySelectorAll('button')].map((button) => button.getBoundingClientRect());
+    return {
+      left: bounds.left,
+      right: bounds.right,
+      headingRight: heading?.right ?? null,
+      buttonsOverlap: buttons.some((button, index) => index > 0 && button.left < buttons[index - 1].right),
+    };
+  }));
+  assert(editControlGeometry.every((controls) => controls.left >= 0 && controls.right <= 320), 'Group edit controls exceed a 320px viewport.');
+  assert(editControlGeometry.every((controls) => controls.headingRight !== null && controls.headingRight <= controls.left), 'Group heading overlaps edit controls at 320px.');
+  assert(editControlGeometry.every((controls) => !controls.buttonsOverlap), 'Group edit controls overlap at 320px.');
+
+  await page.getByRole('button', { name: '+', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'new pin' }).click();
+  const shortDialog = page.locator('[aria-labelledby="dialog-title"]');
+  const shortDialogGeometry = await shortDialog.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    return {
+      top: bounds.top,
+      bottom: bounds.bottom,
+      viewportHeight: window.innerHeight,
+      overflowY: getComputedStyle(element).overflowY,
+    };
+  });
+  assert(shortDialogGeometry.top >= 0 && shortDialogGeometry.bottom <= shortDialogGeometry.viewportHeight, 'Dialog exceeds a short viewport.');
+  assert(shortDialogGeometry.overflowY === 'auto', 'Dialog does not scroll internally on short viewports.');
+  await page.getByRole('button', { name: 'save' }).scrollIntoViewIfNeeded();
+  const saveButton = await page.getByRole('button', { name: 'save' }).boundingBox();
+  assert(saveButton && saveButton.y + saveButton.height <= 568, 'Dialog actions are unreachable on a short viewport.');
+  await page.keyboard.press('Escape');
+
   await page.setViewportSize({ width: 360, height: 800 });
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Edit mode overflows a narrow viewport.');
   await page.screenshot({ path: '/tmp/new-tab-editing-narrow.png', fullPage: true });
@@ -234,18 +268,7 @@ try {
 
   await page.getByRole('button', { name: 'settings' }).click();
   assert((await page.getByRole('heading', { name: 'Weather' }).count()) === 0, 'Weather settings are still visible.');
-  await page.keyboard.press('Control+K');
-  assert(await page.evaluate(() => document.activeElement?.textContent?.trim() === 'close'), 'Search shortcut escaped the settings drawer.');
-  const engineSelect = page.getByLabel('engine');
-  await engineSelect.selectOption('google');
-  await page.waitForTimeout(100);
-  await verifySearchEngine(context, 'https://www.google.com/search?q=prompt%20four');
-  await engineSelect.selectOption('duckduckgo');
-  await page.waitForTimeout(100);
-  await verifySearchEngine(context, 'https://duckduckgo.com/?q=prompt%20four');
-  await engineSelect.selectOption('brave');
-  await page.waitForTimeout(100);
-  await verifySearchEngine(context, 'https://search.brave.com/search?q=prompt%20four');
+  assert((await page.getByRole('heading', { name: 'Search' }).count()) === 0, 'Search settings are still visible.');
 
   await page.getByLabel('font', { exact: true }).selectOption('custom');
   await page.getByLabel('custom font-family').fill('Definitely Missing Mono');
@@ -300,7 +323,6 @@ extra_key = "ignored"
   await page.reload();
   await page.waitForLoadState('domcontentloaded');
   await page.getByRole('button', { name: 'settings' }).click();
-  assert((await page.getByLabel('engine').inputValue()) === 'brave', 'Search engine selection did not survive reload.');
   assert((await page.getByLabel('font', { exact: true }).inputValue()) === 'custom', 'Font selection did not survive reload.');
   assert((await page.getByLabel('custom font-family').inputValue()) === 'Definitely Missing Mono', 'Custom font did not survive reload.');
   assert(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--background').trim() === '#101820'), 'Imported theme did not survive reload.');
@@ -359,8 +381,10 @@ extra_key = "ignored"
   const persistedDevelopmentPins = await pinLabels(page.locator('[data-pin-category="development"]'));
   assert(persistedDevelopmentPins[2]?.includes('github'), 'Pin order did not survive reload.');
 
+  const editingLayoutPositions = await layoutPositions(page);
   await page.getByRole('button', { name: 'Lock layout' }).click();
   await page.getByRole('button', { name: 'Edit layout' }).waitFor();
+  assertSameLayout(editingLayoutPositions, await layoutPositions(page));
   await page.getByRole('link', { name: /github/i }).waitFor();
   assert((await page.getByRole('button', { name: 'add +' }).count()) === 0, 'Inline add controls are visible while locked.');
   assert((await page.getByRole('button', { name: '+', exact: true }).count()) === 0, 'Dock add control is visible while locked.');
@@ -386,7 +410,9 @@ extra_key = "ignored"
   assert(pinStyles.collectionDisplay === 'flex' && pinStyles.collectionFlexWrap === 'wrap', 'Pin collection is not using flex-wrap.');
 
   const viewports = [
+    { width: 320, height: 568 },
     { width: 360, height: 800 },
+    { width: 390, height: 844 },
     { width: 768, height: 900 },
     { width: 1024, height: 768 },
     { width: 1280, height: 720 },
@@ -397,29 +423,36 @@ extra_key = "ignored"
 
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 
     const geometry = await page.evaluate(() => {
       const header = document.querySelector('header')?.getBoundingClientRect();
-      const search = document.querySelector('[role="search"]')?.getBoundingClientRect();
       const pins = document.querySelector('[aria-labelledby="pins-heading"]')?.getBoundingClientRect();
       const dock = document.querySelector('[aria-label="New tab controls"]')?.getBoundingClientRect();
+      const dockButtonHeights = [...document.querySelectorAll('[aria-label="New tab controls"] button')]
+        .map((element) => element.getBoundingClientRect().height);
+      const contentBottoms = [...document.querySelectorAll('[data-group-id], [data-pin-category="uncategorized"]')]
+        .map((element) => element.getBoundingClientRect().bottom);
 
       return {
         hasHorizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
         headerCenter: header ? header.left + header.width / 2 : null,
-        searchCenter: search ? search.left + search.width / 2 : null,
         pinsLeft: pins?.left ?? null,
         dockLeft: dock?.left ?? null,
         dockRight: dock?.right ?? null,
+        dockTop: dock?.top ?? null,
+        dockButtonMinHeight: dockButtonHeights.length > 0 ? Math.min(...dockButtonHeights) : null,
+        lastContentBottom: contentBottoms.length > 0 ? Math.max(...contentBottoms) : null,
         viewportWidth: window.innerWidth,
       };
     });
 
     assert(!geometry.hasHorizontalOverflow, `Page overflows horizontally at ${viewport.width}x${viewport.height}.`);
     assert(geometry.headerCenter !== null && Math.abs(geometry.headerCenter - viewport.width / 2) < 2, `Header is not centered at ${viewport.width}x${viewport.height}.`);
-    assert(geometry.searchCenter !== null && Math.abs(geometry.searchCenter - viewport.width / 2) < 2, `Search is not centered at ${viewport.width}x${viewport.height}.`);
     assert(geometry.pinsLeft !== null && geometry.pinsLeft < viewport.width / 2, `Pin content is not left-aligned at ${viewport.width}x${viewport.height}.`);
     assert(geometry.dockLeft !== null && geometry.dockLeft >= 0 && geometry.dockRight !== null && geometry.dockRight <= geometry.viewportWidth, `Dock is outside the viewport at ${viewport.width}x${viewport.height}.`);
+    assert(geometry.dockButtonMinHeight !== null && geometry.dockButtonMinHeight >= 36, `Dock controls are too short at ${viewport.width}x${viewport.height}.`);
+    assert(geometry.dockTop !== null && geometry.lastContentBottom !== null && geometry.dockTop - geometry.lastContentBottom >= 24, `Dock overlaps content at ${viewport.width}x${viewport.height}.`);
 
     await page.screenshot({ path: `/tmp/new-tab-${viewport.width}x${viewport.height}.png`, fullPage: true });
   }
@@ -509,7 +542,7 @@ extra_key = "ignored"
   await cachedPinOffline.locator('img').waitFor();
   const cachedSrcOffline = await cachedPinOffline.locator('img').getAttribute('src');
   assert(cachedSrcOffline && cachedSrcOffline.startsWith('blob:'), 'Cached favicon did not render while offline.');
-  await page.getByPlaceholder('search the web...').waitFor();
+  await page.getByRole('button', { name: 'settings' }).waitFor();
   await context.setOffline(false);
 
   await page.evaluate(async () => {

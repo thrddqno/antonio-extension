@@ -4,7 +4,6 @@ export const STATE_VERSION = 1;
 export const STORAGE_KEY = 'newTabState';
 
 export const defaultPreferences: Preferences = {
-  searchEngine: 'google',
   lockLayoutByDefault: true,
   font: 'system',
   customFont: '',

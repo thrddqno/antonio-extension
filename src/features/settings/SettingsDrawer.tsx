@@ -1,7 +1,7 @@
 import { type ChangeEvent, type Dispatch, type SetStateAction, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { parseColorsToml } from '../../theme/colorsToml';
 import { FONT_OPTIONS, normalizeCustomFont, type FontOption } from '../../theme/theme';
-import type { NewTabState, SearchEngine } from '../../types/state';
+import type { NewTabState } from '../../types/state';
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -92,15 +92,15 @@ export function SettingsDrawer({ isOpen, state, onClose, onChange }: SettingsDra
   }
 
   return (
-    <aside ref={drawerRef} className="fixed inset-y-0 right-0 z-30 w-full max-w-md overflow-y-auto border-l border-[var(--border)] bg-[var(--background)] p-6 text-sm" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <div className="mb-9 flex items-center justify-between gap-4 border-b border-[var(--border)] pb-3">
+    <aside ref={drawerRef} className="fixed inset-y-0 right-0 z-30 w-full max-w-md overflow-y-auto border-l border-[var(--border)] bg-[var(--background)] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-sm sm:p-6 sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div className="mb-6 flex items-center justify-between gap-4 border-b border-[var(--border)] pb-3 sm:mb-9">
         <h2 id="settings-title" className="text-xs uppercase tracking-[0.32em] text-[var(--foreground-strong)]">Settings</h2>
-        <button ref={closeRef} className="text-[var(--muted)] transition-colors duration-150 hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>close</button>
+        <button ref={closeRef} className="control-target px-2 text-[var(--muted)] transition-colors duration-150 hover:text-[var(--foreground-strong)]" type="button" onClick={onClose}>close</button>
       </div>
 
-      <div className="space-y-10">
+      <div className="space-y-8 sm:space-y-10">
         <section>
-          <h3 className="mb-5 border-b border-[var(--border)] pb-2 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Appearance</h3>
+          <h3 className="mb-4 border-b border-[var(--border)] pb-2 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Appearance</h3>
           <div className="space-y-5">
             <div>
               <span className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">theme</span>
@@ -124,11 +124,11 @@ export function SettingsDrawer({ isOpen, state, onClose, onChange }: SettingsDra
             </div>
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-              <label className="cursor-pointer text-[var(--foreground)] transition-colors duration-150 hover:text-[var(--foreground-strong)]">
+              <label className="control-target inline-flex cursor-pointer items-center px-2 text-[var(--foreground)] transition-colors duration-150 hover:text-[var(--foreground-strong)]">
                 import colors.toml
                 <input className="sr-only" type="file" accept=".toml,text/plain,application/toml" onChange={importTheme} />
               </label>
-              <button className="text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={() => {
+              <button className="control-target px-2 text-[var(--muted)] hover:text-[var(--foreground-strong)]" type="button" onClick={() => {
                 updatePreferences({ importedTheme: null });
                 setImportMessage('default theme restored');
               }}>reset to default</button>
@@ -138,17 +138,7 @@ export function SettingsDrawer({ isOpen, state, onClose, onChange }: SettingsDra
         </section>
 
         <section>
-          <h3 className="mb-5 border-b border-[var(--border)] pb-2 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Search</h3>
-          <label className="block text-xs uppercase tracking-[0.2em] text-[var(--subtle)]" htmlFor="search-engine">engine</label>
-          <select id="search-engine" className={controlClass} value={preferences.searchEngine} onChange={(event) => updatePreferences({ searchEngine: event.target.value as SearchEngine })}>
-            <option value="google">google</option>
-            <option value="duckduckgo">duckduckgo</option>
-            <option value="brave">brave search</option>
-          </select>
-        </section>
-
-        <section>
-          <h3 className="mb-5 border-b border-[var(--border)] pb-2 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Layout</h3>
+          <h3 className="mb-4 border-b border-[var(--border)] pb-2 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Layout</h3>
           <label className="flex items-center gap-3 text-[var(--foreground)]" htmlFor="lock-default">
             <input id="lock-default" type="checkbox" checked={preferences.lockLayoutByDefault} onChange={(event) => updatePreferences({ lockLayoutByDefault: event.target.checked })} />
             lock layout by default

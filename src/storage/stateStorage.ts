@@ -14,10 +14,6 @@ function normalizePreferences(value: unknown): Preferences {
   }
 
   return {
-    searchEngine:
-      value.searchEngine === 'google' || value.searchEngine === 'duckduckgo' || value.searchEngine === 'brave'
-        ? value.searchEngine
-        : defaultPreferences.searchEngine,
     lockLayoutByDefault:
       typeof value.lockLayoutByDefault === 'boolean'
         ? value.lockLayoutByDefault
