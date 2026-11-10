@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - master
-    tags:
-      - 'v*'
   pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -16,6 +18,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -29,6 +32,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test
+
       - name: Build extension
         run: npm run build
 
@@ -36,13 +48,13 @@ jobs:
         run: npm run test:extension
 
       - name: Package extension files
-        run: zip -r new-tab-extension.zip .
+        run: zip -r ../new-tab-extension.zip .
         working-directory: dist
 
-      - name: Upload extension files
+      - name: Upload extension package
         uses: actions/upload-artifact@v4
         with:
           name: new-tab-extension
-          path: dist/new-tab-extension.zip
+          path: new-tab-extension.zip
           if-no-files-found: error
           retention-days: 30
